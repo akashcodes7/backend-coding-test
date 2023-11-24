@@ -6,7 +6,8 @@ const options = {
     info: {
       title: 'Ride Management API',
       version: '1.0.0',
-      description: 'This API is designed to manage rides, providing endpoints for health checks, creating new rides with detailed validation, retrieving a list of all rides, and retrieving ride details by ID. The API adheres to standard HTTP status codes and incorporates robust error handling for scenarios such as validation errors, resource not found errors, and server errors. Swagger documentation is integrated to offer clear insights into available endpoints, request/response structures, and error handling.',
+      description:
+        'The API doc is providing structured information about the available endpoints.',
     },
     servers: [
       {
@@ -15,7 +16,7 @@ const options = {
       },
     ],
   },
-  apis: ['./src/*.js']
+  apis: ['./src/*.js'],
 };
 
 const swaggerSpec = swaggerJSDoc(options);

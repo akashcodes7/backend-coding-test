@@ -86,28 +86,41 @@ For detailed API specifications, refer to the [Swagger Documentation](/api-docs)
 ## Setup
 
 1. **Take pull from the Github repository:**
+
    - Fork this repository.
    - Open the repository `backend-coding-test`.
 
 2. **Ensure Dependencies:**
+
    - Ensure that `node (>8.6 and <= 10)` and `npm` are installed on your machine.
 
 3. **Install Dependencies:**
+
    ```bash
    npm install
 
-3. **Run Tests:**
+   ```
+
+4. **Run Tests:**
+
    ```bash
    npm test
-  
-4. **Start the Server:**
+
+   ```
+
+5. **Start the Server:**
+
    ```bash
    npm start
 
-4. **Test Server Health:**
+   ```
+
+6. **Test Server Health:**
+
    ```bash
    curl localhost:8010/health
 
    Expect a 200 response
 
-   
+
+   ```
