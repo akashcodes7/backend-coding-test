@@ -124,3 +124,4 @@ For detailed API specifications, refer to the [Swagger Documentation](/api-docs)
 
 
    ```
+[![CircleCI](https://circleci.com/gh/akashcodes7/backend-coding-test.svg?style=svg)](https://circleci.com/gh/akashcodes7/backend-coding-test)
