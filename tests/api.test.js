@@ -1,6 +1,7 @@
 const request = require('supertest');
-const expect = require('chai').expect;
+const { expect } = require('chai');
 const sqlite3 = require('sqlite3').verbose();
+
 const db = new sqlite3.Database(':memory:');
 const app = require('../src/app')(db);
 const buildSchemas = require('../src/schemas');
@@ -36,16 +37,14 @@ describe('API tests', () => {
 });
 
 describe('GET /rides', () => {
-
   it('should return 200 with a rides not found error message if no rides are found', async () => {
-    const res = await request(app).get(`/rides`);
+    const res = await request(app).get('/rides');
     expect(res.status).to.equal(200);
     expect(res.body).to.deep.equal({
       error_code: 'RIDES_NOT_FOUND_ERROR',
       message: 'Could not find any rides',
     });
   });
-
 });
 
 describe('POST /rides', () => {
@@ -83,12 +82,12 @@ describe('POST /rides', () => {
       driver_name: 'test',
       driver_vehicle: 'test',
     };
-    const res = await request(app).post(`/rides`).send(newRide).expect('Content-Type', /json/);
+    const res = await request(app).post('/rides').send(newRide).expect('Content-Type', /json/);
 
     expect(res.status).to.equal(200);
     expect(res.body).to.deep.equal({
-      "error_code": "SERVER_ERROR",
-      "message": "Unknown error"
+      error_code: 'SERVER_ERROR',
+      message: 'Unknown error',
     });
   });
 
@@ -214,9 +213,7 @@ describe('POST /rides', () => {
     expect(errorObject).to.have.property('error_code', 'VALIDATION_ERROR');
     expect(errorObject).to.have.property('message', 'Driver vehicle must be a non-empty string');
   });
-
 });
-
 
 describe('GET /rides', () => {
   it('should return all the rides', (done) => {
@@ -231,10 +228,7 @@ describe('GET /rides', () => {
         done();
       });
   });
-
-
 });
-
 
 describe('GET /rides/:id', () => {
   it('should return the ride with the given ID', async () => {
@@ -257,5 +251,4 @@ describe('GET /rides/:id', () => {
       message: 'Could not find any rides',
     });
   });
-
 });

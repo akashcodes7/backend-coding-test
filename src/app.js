@@ -3,6 +3,7 @@ const { promisify } = require('util');
 
 const app = express();
 const bodyParser = require('body-parser');
+const { logger } = require('../log/winston');
 
 const jsonParser = bodyParser.json();
 
@@ -84,7 +85,7 @@ module.exports = (db) => {
       req.body.driver_name,
       req.body.driver_vehicle,
     ];
-
+    logger.info(JSON.stringify(values));
     try {
       let lastID = await new Promise(async (resolve, reject) => {
         db.run(
@@ -92,6 +93,7 @@ module.exports = (db) => {
           values,
           function (err) {
             if (err) {
+              logger.error(JSON.stringify(err));
               reject(err);
             } else {
               resolve(this.lastID);
@@ -103,6 +105,7 @@ module.exports = (db) => {
       let rows = await new Promise((resolve, reject) => {
         db.all('SELECT * FROM Rides WHERE rideID = ?', lastID, function (err, rows) {
           if (err) {
+            logger.error(JSON.stringify(err));
             reject(err);
           } else {
             resolve(rows);
@@ -111,10 +114,12 @@ module.exports = (db) => {
       });
       res.send(rows);
     } catch (err) {
+      logger.error(JSON.stringify(err));
       return res.send({
         error_code: 'SERVER_ERROR',
         message: 'Unknown error',
       });
+
     }
   });
 
@@ -129,6 +134,7 @@ module.exports = (db) => {
       }
       return res.send(rows);
     } catch (err) {
+      logger.error(JSON.stringify(err));
       return res.send({
         error_code: 'SERVER_ERROR',
         message: 'Unknown error',
@@ -151,6 +157,7 @@ module.exports = (db) => {
 
       return res.send(rows);
     } catch (err) {
+      logger.error(JSON.stringify(err));
       return res.send({
         error_code: 'SERVER_ERROR',
         message: 'Unknown error',
