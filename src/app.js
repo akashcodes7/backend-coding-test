@@ -3,7 +3,7 @@ const { promisify } = require('util');
 
 const app = express();
 const bodyParser = require('body-parser');
-const { logger } = require('../loggger/winston');
+const { logger } = require('../log/winston');
 
 const jsonParser = bodyParser.json();
 
