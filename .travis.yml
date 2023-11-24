@@ -1,0 +1,9 @@
+language: node_js
+node_js:
+  - "node"  # Latest version of Node.js
+
+script:
+  - npm install
+  - npm run lint  # Run linting
+  - npm run test  # Run tests
+  - npm run check-coverage  # Check code coverage

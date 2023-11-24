@@ -38,10 +38,12 @@
     "body-parser": "^1.19.0",
     "chai": "^4.3.10",
     "express": "^4.16.4",
+    "moment-timezone": "^0.5.43",
     "sinon": "^17.0.1",
     "sqlite3": "^4.0.6",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.0"
+    "swagger-ui-express": "^5.0.0",
+    "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
     "eslint": "^7.32.0",
