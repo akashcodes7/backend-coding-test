@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const sqlite3 = require('sqlite3').verbose();
 const swaggerUi = require('swagger-ui-express');
-const reqStats = require("./loggger/requestLogger");
+const reqStats = require("./logger/requestLogger");
 
 const app = express();
 const port = 8010;
