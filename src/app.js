@@ -4,14 +4,12 @@ const { promisify } = require('util');
 const app = express();
 const bodyParser = require('body-parser');
 const { logger } = require('../logger/winston');
+const { validateRideRequest } = require('./imperativeFunction');
 
 const jsonParser = bodyParser.json();
 
 
 module.exports = (db) => {
-
-  const dbAllAsync = promisify(db.all.bind(db));
-
   /**
   * @swagger
   * /health:
@@ -84,116 +82,8 @@ module.exports = (db) => {
    *             schema:
    *               $ref: '#/components/schemas/ServerError'
    */
-  app.post('/rides', jsonParser, async (req, res) => {
-    const startLatitude = Number(req.body.start_lat);
-    const startLongitude = Number(req.body.start_long);
-    const endLatitude = Number(req.body.end_lat);
-    const endLongitude = Number(req.body.end_long);
-    const riderName = req.body.rider_name;
-    const driverName = req.body.driver_name;
-    const driverVehicle = req.body.driver_vehicle;
 
-    const validationErrors = [];
-
-    if (
-      startLatitude < -90 ||
-      startLatitude > 90 ||
-      startLongitude < -180 ||
-      startLongitude > 180
-    ) {
-      validationErrors.push({
-        error_code: 'VALIDATION_ERROR',
-        message:
-          'Start latitude and longitude must be between -90 -90 & -180 to 180 degrees respectively',
-      });
-    }
-
-    if (
-      endLatitude < -90 ||
-      endLatitude > 90 ||
-      endLongitude < -180 ||
-      endLongitude > 180
-    ) {
-      validationErrors.push({
-        error_code: 'VALIDATION_ERROR',
-        message:
-          'End latitude and longitude must be between -90 - 90 & -180 to 180 degrees respectively',
-      });
-    }
-
-    if (typeof riderName !== 'string' || riderName.length < 1) {
-      validationErrors.push({
-        error_code: 'VALIDATION_ERROR',
-        message: 'Rider name must be a non-empty string',
-      });
-    }
-
-    if (typeof driverName !== 'string' || driverName.length < 1) {
-      validationErrors.push({
-        error_code: 'VALIDATION_ERROR',
-        message: 'Driver name must be a non-empty string',
-      });
-    }
-
-    if (typeof driverVehicle !== 'string' || driverVehicle.length < 1) {
-      validationErrors.push({
-        error_code: 'VALIDATION_ERROR',
-        message: 'Driver vehicle must be a non-empty string',
-      });
-    }
-
-
-    if (validationErrors.length > 0) {
-      return res.send(validationErrors);
-    }
-
-    const values = [
-      req.body.start_lat,
-      req.body.start_long,
-      req.body.end_lat,
-      req.body.end_long,
-      req.body.rider_name,
-      req.body.driver_name,
-      req.body.driver_vehicle,
-    ];
-    logger.info(JSON.stringify(values));
-    try {
-      let lastID = await new Promise(async (resolve, reject) => {
-        db.run(
-          'INSERT INTO Rides(startLat, startLong, endLat, endLong, riderName, driverName, driverVehicle) VALUES (?, ?, ?, ?, ?, ?, ?)',
-          values,
-          function (err) {
-            if (err) {
-              logger.error(JSON.stringify(err));
-              reject(err);
-            } else {
-              resolve(this.lastID);
-            }
-          }
-        );
-      });
-
-      let rows = await new Promise((resolve, reject) => {
-        db.all('SELECT * FROM Rides WHERE rideID = ?', lastID, function (err, rows) {
-          if (err) {
-            logger.error(JSON.stringify(err));
-            reject(err);
-          } else {
-            resolve(rows);
-          }
-        });
-      });
-      res.send(rows);
-    } catch (err) {
-      logger.error(JSON.stringify(err));
-      return res.send({
-        error_code: 'SERVER_ERROR',
-        message: 'Unknown error',
-      });
-
-    }
-  });
-
+  app.post('/rides', jsonParser, (req, res) => createRide(req, res, db));
   /**
    * @swagger
    * /rides:
@@ -234,27 +124,7 @@ module.exports = (db) => {
    *               $ref: '#/components/schemas/ServerError'
    */
 
-  app.get('/rides', async (req, res) => {
-    try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-      const offset = (page - 1) * limit;
-      const rows = await dbAllAsync('SELECT * FROM Rides LIMIT ? OFFSET ?', [limit, offset]);
-      if (rows.length === 0) {
-        return res.send({
-          error_code: 'RIDES_NOT_FOUND_ERROR',
-          message: 'Could not find any rides',
-        });
-      }
-      return res.send(rows);
-    } catch (err) {
-      logger.error(JSON.stringify(err));
-      return res.send({
-        error_code: 'SERVER_ERROR',
-        message: 'Unknown error',
-      });
-    }
-  });
+  app.get('/rides', jsonParser, (req, res) => getRides(req, res, db));
 
   /**
    * @swagger
@@ -285,28 +155,94 @@ module.exports = (db) => {
    *             schema:
    *               $ref: '#/components/schemas/NotFoundError'
    */
-  app.get('/rides/:id', async (req, res) => {
-    try {
-      const rows = await dbAllAsync(
-        `SELECT * FROM Rides WHERE rideID='${req.params.id}'`,
-      );
 
-      if (rows.length === 0) {
-        return res.send({
-          error_code: 'RIDES_NOT_FOUND_ERROR',
-          message: 'Could not find any rides',
-        });
-      }
-
-      return res.send(rows);
-    } catch (err) {
-      logger.error(JSON.stringify(err));
-      return res.send({
-        error_code: 'SERVER_ERROR',
-        message: 'Unknown error',
-      });
-    }
-  });
+  app.get('/rides/:id', jsonParser, (req, res) => getRideById(req, res, db));
 
   return app;
+};
+
+const createRide = async (req, res, db) => {
+
+  const validationErrors = validateRideRequest(req.body);
+  if (validationErrors.length > 0) {
+    return res.send(validationErrors);
+  }
+
+  const values = [
+    req.body.start_lat,
+    req.body.start_long,
+    req.body.end_lat,
+    req.body.end_long,
+    req.body.rider_name,
+    req.body.driver_name,
+    req.body.driver_vehicle,
+  ];
+  logger.info(JSON.stringify(values));
+  try {
+    const dbRunAsync = promisify(db.run.bind(db));
+    const dbAllAsync = promisify(db.all.bind(db));
+    await dbRunAsync(
+      'INSERT INTO Rides(startLat, startLong, endLat, endLong, riderName, driverName, driverVehicle) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      values
+    );
+    const rows = await dbAllAsync('SELECT * FROM Rides WHERE rideID = last_insert_rowid()');
+    res.send(rows);
+  } catch (err) {
+    logger.error(JSON.stringify(err));
+    return res.send({
+      error_code: 'SERVER_ERROR',
+      message: 'Unknown error',
+    });
+  }
+}
+
+const getRides = async (req, res, db) => {
+  try {
+    const dbAllAsync = promisify(db.all.bind(db));
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    const rows = await dbAllAsync('SELECT * FROM Rides LIMIT ? OFFSET ?', [limit, offset]);
+
+    if (rows.length === 0) {
+      return res.send({
+        error_code: 'RIDES_NOT_FOUND_ERROR',
+        message: 'Could not find any rides',
+      });
+    }
+
+    return res.send(rows);
+  } catch (err) {
+    logger.error(JSON.stringify(err));
+    return res.send({
+      error_code: 'SERVER_ERROR',
+      message: 'Unknown error',
+    });
+  }
+};
+
+const getRideById = async (req, res, db) => {
+
+  try {
+    const dbAllAsync = promisify(db.all.bind(db));
+    const rows = await dbAllAsync(
+      `SELECT * FROM Rides WHERE rideID='${req.params.id}'`,
+    );
+
+    if (rows.length === 0) {
+      return res.send({
+        error_code: 'RIDES_NOT_FOUND_ERROR',
+        message: 'Could not find any rides',
+      });
+    }
+
+    return res.send(rows);
+  } catch (err) {
+    logger.error(JSON.stringify(err));
+    return res.send({
+      error_code: 'SERVER_ERROR',
+      message: 'Unknown error',
+    });
+  }
 };

@@ -141,7 +141,6 @@ describe('POST /rides', () => {
   });
 
   it('should return 200 with a validation error message for invalid end latitude and longitude', async () => {
-    // Create a request with invalid end latitude and longitude
     const rideWithInvalidEndLocation = {
       start_lat: 37.7749,
       start_long: -122.4194,
@@ -162,7 +161,7 @@ describe('POST /rides', () => {
     const errorObject = res.body[0];
 
     expect(errorObject).to.have.property('error_code', 'VALIDATION_ERROR');
-    expect(errorObject).to.have.property('message', 'End latitude and longitude must be between -90 - 90 & -180 to 180 degrees respectively');
+    expect(errorObject).to.have.property('message', 'End latitude and longitude must be between -90 -90 & -180 to 180 degrees respectively');
   });
 
   it('should return 200 with a validation error message if driver name is missing', async () => {
