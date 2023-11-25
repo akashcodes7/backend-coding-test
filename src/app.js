@@ -125,7 +125,10 @@ module.exports = (db) => {
 
   app.get('/rides', async (req, res) => {
     try {
-      const rows = await dbAllAsync('SELECT * FROM Rides');
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+      const rows = await dbAllAsync('SELECT * FROM Rides LIMIT ? OFFSET ?', [limit, offset]);
       if (rows.length === 0) {
         return res.send({
           error_code: 'RIDES_NOT_FOUND_ERROR',
@@ -141,6 +144,7 @@ module.exports = (db) => {
       });
     }
   });
+
 
   app.get('/rides/:id', async (req, res) => {
     try {
