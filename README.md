@@ -4,6 +4,7 @@
 
 The Backend Coding Test is a RESTful API designed to manage rides. It includes functionality to check the health of the API server, create new rides with detailed validation, retrieve a list of all rides, and retrieve ride details by ID. The API provides responses conforming to standard HTTP status codes and includes error handling for various scenarios such as validation errors, not found errors, and server errors.
 
+
 ## API Documentation
 
 The API documentation is built using Swagger, providing clear and structured information about the available endpoints, request/response structures, and error handling.
