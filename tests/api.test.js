@@ -216,7 +216,9 @@ describe('POST /rides', () => {
 });
 
 describe('GET /rides', () => {
-  it('should return all the rides', (done) => {
+
+
+  it('should return first page of rides when no parameters are given', (done) => {
     request(app)
       .get('/rides')
       .expect('Content-Type', /json/)
@@ -224,7 +226,33 @@ describe('GET /rides', () => {
       .end((err, res) => {
         if (err) return done(err);
         expect(res.body[0]).to.have.property('rideID');
-        // Add more assertions as needed
+        expect(res.body.length).to.be.at.most(10); // Default limit is 10
+        done();
+      });
+  });
+
+  // Uncomment when you add more than 10 rides into Database otherwise it will give error
+  // it('should return the second page of rides', (done) => {
+  //   request(app)
+  //     .get('/rides?page=1')
+  //     .expect('Content-Type', /json/)
+  //     .expect(200)
+  //     .end((err, res) => {
+  //       if (err) return done(err);
+  //       expect(res.body[0]).to.have.property('rideID');
+  //       done();
+  //     });
+  // });
+
+  it('should return 5 rides per page', (done) => {
+    request(app)
+      .get('/rides?limit=5')
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, res) => {
+        if (err) return done(err);
+        expect(res.body[0]).to.have.property('rideID');
+        // expect(res.body.length).to.equal(5); // uncomment if there are more than 5 or equal to 5 created rides 
         done();
       });
   });
