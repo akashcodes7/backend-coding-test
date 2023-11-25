@@ -16,3 +16,9 @@ scenarios:
             rider_name: 'John Doe'
             driver_name: 'Jane Doe'
             driver_vehicle: 'Car'
+  - flow:
+      - get:
+          url: '/rides'
+  - flow:
+      - get:
+          url: '/rides/1'
