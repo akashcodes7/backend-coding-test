@@ -44,21 +44,47 @@ Create a new ride with the provided details.
 - `400 Bad Request`: Validation error or bad request.
 - `500 Internal Server Error`: Server error.
 
-### Get All Rides
+Retrieve a list of all rides.
+
+### Get Rides with Pagination
 
 #### Endpoint
 
-GET /rides
+`GET /rides`
+
+#### Summary
+
+Get rides with pagination.
 
 #### Description
 
-Retrieve a list of all rides.
+Retrieve a list of rides with pagination. The number of items per page and the page number can be controlled with query parameters.
+
+#### Query Parameters
+
+- `page` (integer): The page number.
+- `limit` (integer): The number of items to return per page.
 
 #### Responses
 
-- `200 OK`: List of rides.
+- `200 OK`: A list of rides.
+  - Content Type: `application/json`
+  - Schema:
+    ```json
+    {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/Ride"
+      }
+    }
+    ```
 - `404 Not Found`: Rides not found.
+  - Content Type: `application/json`
+  - Schema: `NotFoundError` (Refer to `#/components/schemas/NotFoundError`)
 - `500 Internal Server Error`: Server error.
+  - Content Type: `application/json`
+  - Schema: `ServerError` (Refer to `#/components/schemas/ServerError`)
+
 
 ### Get Ride by ID
 

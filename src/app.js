@@ -12,7 +12,78 @@ module.exports = (db) => {
 
   const dbAllAsync = promisify(db.all.bind(db));
 
+  /**
+  * @swagger
+  * /health:
+  *   get:
+  *     summary: Check the health of the API Server
+  *     description: Returns a positive response indicating the server's health.
+  *     responses:
+  *       200:
+  *         description: Returns as a positive response i.e "Healthy"
+  *         content:
+  *           text/plain:
+  *             example: Healthy
+  */
   app.get('/health', async (req, res) => res.send('Healthy'));
+
+  /**
+   * @swagger
+   * /rides:
+   *   post:
+   *     summary: Create a new ride
+   *     description: This API endpoint allows the creation of a new ride. The ride details should be included in the request body in JSON format. The API performs validation checks on the provided data, including latitude and longitude constraints, non-empty string requirements for rider name, driver name, and driver vehicle information
+   *     requestBody:
+   *       description: Ride details
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               start_lat:
+   *                 type: number
+   *                 description: Latitude of the starting point. Must be between -90 and 90.
+   *               start_long:
+   *                 type: number
+   *                 description: Longitude of the starting point. Must be between -180 and 180.
+   *               end_lat:
+   *                 type: number
+   *                 description: Latitude of the ending point. Must be between -90 and 90.
+   *               end_long:
+   *                 type: number
+   *                 description: Longitude of the ending point. Must be between -180 and 180.
+   *               rider_name:
+   *                 type: string
+   *                 description: Name of the rider. Must be a non-empty string.
+   *               driver_name:
+   *                 type: string
+   *                 description: Name of the driver. Must be a non-empty string.
+   *               driver_vehicle:
+   *                 type: string
+   *                 description: Vehicle information of the driver. Must be a non-empty string.
+   *     responses:
+   *       200:
+   *         description: Ride created successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/Ride'
+   *       400:
+   *         description: Validation error or bad request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ValidationError'
+   *       500:
+   *         description: Server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ServerError'
+   */
   app.post('/rides', jsonParser, async (req, res) => {
     const startLatitude = Number(req.body.start_lat);
     const startLongitude = Number(req.body.start_long);
@@ -123,6 +194,46 @@ module.exports = (db) => {
     }
   });
 
+  /**
+   * @swagger
+   * /rides:
+   *   get:
+   *     summary: Get rides with pagination
+   *     description: Retrieve a list of rides with pagination. The number of items per page and the page number can be controlled with query parameters.
+   *     parameters:
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *         description: The page number.
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *         description: The number of items to return per page.
+   *     responses:
+   *       200:
+   *         description: A list of rides.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/Ride'
+   *       404:
+   *         description: Rides not found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/NotFoundError'
+   *       500:
+   *         description: Server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ServerError'
+   */
+
   app.get('/rides', async (req, res) => {
     try {
       const page = parseInt(req.query.page) || 1;
@@ -145,7 +256,35 @@ module.exports = (db) => {
     }
   });
 
-
+  /**
+   * @swagger
+   * /rides/{id}:
+   *   get:
+   *     summary: Get ride by ID
+   *     description: Retrieve ride details by ID.
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         description: ID of the ride to retrieve.
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       200:
+   *         description: Ride details retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/Ride'
+   *       404:
+   *         description: Ride not found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/NotFoundError'
+   */
   app.get('/rides/:id', async (req, res) => {
     try {
       const rows = await dbAllAsync(
